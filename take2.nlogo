@@ -135,75 +135,57 @@ to set-thief-patch
         set q-val-south 0
         set q-val-west 0
       ]
-  ]
-    ask bikes[
-        if (any? bikes-on patch-ahead 3)[
+
+      if (any? bikes-on patch-ahead 3)[
       ;if (bikes-here = true)[
       set q-val-north 10
       set q-val-east 10
       set q-val-south 10
       set q-val-west 10
   ]
-    ]
 
-      ask policeofficer[
     if (any? policeofficer-on patch-ahead 3)[
       set q-val-north -10
       set q-val-east -10
       set q-val-south -10
       set q-val-west -10
-    ]
+      ]
   ]
   ]
 
-
-;    ;patch that contains a bike receives a reward of 10 (does not account for if it is stolen or not)
-;  ask bikes[
-;      if (any? bikes-on patch-ahead 3)[
-;      ;if (bikes-here = true)[
-;      set q-val-north 10
-;      set q-val-east 10
-;      set q-val-south 10
-;      set q-val-west 10
-;    ]
-;    ]
-;    ;if any? policeofficer-here[
-;    ;patch that contains a police officer receives a penalty of 10 (reward of -10)
-;    ;if (policeofficer-here = true)[
-;  ask policeofficer[
-;    if (any? policeofficer-on patch-ahead 3)[
-;      set q-val-north -10
-;      set q-val-east -10
-;      set q-val-south -10
-;      set q-val-west -10
-;    ]
-;  ]
 end
 
 to set-police-patch
   ask patches[
     ;thief patch reward of 10
-    if (thieves-here = true)[
-      set q-val-north 10
+    ;if (thieves-here = true)[
+    ask policeofficer[
+   if (any? thieves-on patch-ahead 3)[
+    set q-val-north 10
       set q-val-east 10
       set q-val-south 10
       set q-val-west 10
     ]
     ;bike patch reward of 2
     ;offer security advice
-    if (bikes-here = true)[
+   ; if (bikes-here = true)[
+
+      if (any? bikes-on patch-ahead 3)[
       set q-val-north 2
       set q-val-east 2
       set q-val-south 2
       set q-val-west 2
     ]
+
     ;penalty/negative reward for patch with another officer
-    if (policeofficer-here = true)[
+   ;if (policeofficer-here = true)[
+      if (any? policeofficer-on patch-ahead 3)[
       set q-val-north -10
       set q-val-east -10
       set q-val-south -10
       set q-val-west -10
     ]
+  ]
   ]
 end
 
@@ -346,7 +328,7 @@ to found-bike
   ]
   ]
   if (not full?)[
-    if (any? bikes-here)[
+    if (any? bikes-on patch-ahead 5)[
       ask bikes-here[
       if (shape = "bike") and (color = white) and (not stolen?)[
 
@@ -483,19 +465,19 @@ end
 GRAPHICS-WINDOW
 220
 15
-1493
-453
+2758
+882
 -1
 -1
-1.0
+2.0
 1
 10
 1
 1
 1
 0
-0
-0
+1
+1
 1
 -632
 632
@@ -1072,7 +1054,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
