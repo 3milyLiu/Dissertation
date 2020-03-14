@@ -3,11 +3,13 @@
 ; - design (DIAGRAMS)
 ; - specification
 ; - sell time needs to be increased
+; - public intervention (call police or intervene)
 ; - bikes need to be able to come and bike (increase and decrease over time) ie. spawn bikes
 ; - spawn thief
 ; - police need to be set busy, cannot always be available. (busy time)
 
 
+; make sure people can only move on accesible things
 breed [bikes bike]
 breed [thieves thief]
 breed [policeofficer police]
@@ -118,9 +120,9 @@ to setup
   setup-bikes
   set-thief-patch
   set-police-patch
-  set ticketyticktick false
+  ;set ticketyticktick false
   set enforce? false
-  tick
+  ;tick
 end
 
 to set-thief-patch
@@ -128,15 +130,14 @@ to set-thief-patch
     ask thieves[
       ;patch that already contains a thief receives no reward
       ; if (thieves-here = true)[
-      if (any? thieves-on patch-ahead 3)[
-        print "hi"
+      if (any? thieves-on patch-ahead 300)[
         set q-val-north 0
         set q-val-east 0
         set q-val-south 0
         set q-val-west 0
       ]
 
-      if (any? bikes-on patch-ahead 3)[
+      if (any? bikes-on patch-ahead 300)[
       ;if (bikes-here = true)[
       set q-val-north 10
       set q-val-east 10
@@ -144,7 +145,7 @@ to set-thief-patch
       set q-val-west 10
   ]
 
-    if (any? policeofficer-on patch-ahead 3)[
+    if (any? policeofficer-on patch-ahead 300)[
       set q-val-north -10
       set q-val-east -10
       set q-val-south -10
@@ -195,7 +196,8 @@ to go
     if (enforce?)[
       police-move
     ]
-  ifelse(ticketyticktick = true) [tick][tick]
+  tick
+  ;ifelse(ticketyticktick = true) [tick][tick]
   if ticks >= 260 [stop]
 end
 
@@ -210,11 +212,15 @@ to thief-move
       ifelse(probability < 0.9)[
         set heading(heading + 90)]
       [set heading(heading - 90)]]
-    fd 1
+    fd 100
   set-qvalue current-xcor current-ycor heading xcor ycor
+    set ticketyticktick true
+
     found-bike
+
   ]
   set-thief-patch
+
 
 end
 
@@ -236,6 +242,7 @@ to police-move
     ;if free?[
     police-thief
     if (secure-advice?) [police-bike]
+    set ticketyticktick true
     ;]
 
   ]
@@ -246,7 +253,6 @@ end
 ;currently non existent
 to police-thief
   ask thieves-on patch-ahead 5[
-
     set crime-probability crime-probability - (crime-probability * 0.25)
     if crime-probability < 0.1 [
       set giveup? true
@@ -316,26 +322,26 @@ to found-bike
   let random-number2 random-float 1
   set ticketyticktick true
   ;sell the bikes if possible
-  ask bikes[
-    if stolen?[
-      set stolen-time stolen-time + 1
-      if (stolen-time > random 10000)[
-        ;sell-bike
-        ;spawn-bike
-        hatch-bikes 1 [spawn-bike ]
-        die
-      ]
-  ]
-  ]
-  if (not full?)[
-    if (any? bikes-on patch-ahead 5)[
-      ask bikes-here[
-      if (shape = "bike") and (color = white) and (not stolen?)[
-
+  ;ask bikes[
+;    if stolen?[
+;      set stolen-time stolen-time + 1
+;      if (stolen-time > random 10000)[
+;        ;sell-bike
+;        ;spawn-bike
+;        hatch-bikes 1 [spawn-bike ]
+;        die
+;      ]
+;  ]
+;  ]
+;  if (not full?)[
+  ;  if (any? bikes-on patch-ahead 100)[
+      ask bikes in-radius 10[
+    set ticketyticktick true
+      if (shape = "bike") and (color = black) and (not stolen?)[
           if (desirability > random-number) and (security < random-number2)[
             set count-total count-total + 1
-
               hatch-bikes 1 [set stolen? true set color red]
+
               die
             ask thieves[
               set full? true
@@ -344,8 +350,9 @@ to found-bike
 
   ]
   ]
-  ]
-    ]
+;  ]
+   ; ]
+;  ]
 
 end
 
@@ -437,7 +444,7 @@ end
 
 to spawn-bike
     set shape "bike"
-    set color white
+    set color black
     set size 20
     set desirability random-float 0.8
     set security random-float 1
@@ -465,11 +472,11 @@ end
 GRAPHICS-WINDOW
 220
 15
-2758
-882
+1493
+453
 -1
 -1
-2.0
+1.0
 1
 10
 1
@@ -588,7 +595,7 @@ ratio-bikes
 ratio-bikes
 0
 0.5
-0.08
+0.17
 0.01
 1
 NIL
@@ -1054,7 +1061,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
