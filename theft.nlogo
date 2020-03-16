@@ -1,13 +1,16 @@
+;each tick is 12 hours
+;look into how many bikes are stolen in london and estimate how many bikes are generally stolen
+
 ;possible interventions
-
-
+;gps bike tracking
+;secure bicycle parking
 
 breed [bikes bike]
 breed [thieves thief]
 breed [policeofficer police]
 
 globals[
- ; count-police
+  ;count-police
   ;count-bikes
   ;count-thieves
   count-total
@@ -33,7 +36,6 @@ bikes-own[
   stolen?
   birth-tick
 ]
-
 
 to init-map
   import-pcolors "london.png"
@@ -210,6 +212,10 @@ to police-bike
     print "oof"
     if chance > 0.5 [set security security + 0.05]
   ]
+end
+
+;secure parking is available in most places.
+to secure-park
 end
 
 to set-qvalue[current-xcor current-ycor current-heading new-xcor new-ycor]
@@ -826,7 +832,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
