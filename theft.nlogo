@@ -15,6 +15,7 @@ globals[
   ;count-thieves
   count-total
   enforce?
+  hide?
 ]
 
 patches-own[
@@ -28,6 +29,7 @@ patches-own[
 thieves-own[
   crime-probability
   birth-tick
+  hidden?
 ]
 
 bikes-own[
@@ -75,13 +77,23 @@ to setup
   setup-bikes
   setup-thieves
   setup-policeofficer
+  set hide? false
 end
 
 to go
-  move-thief
-  move-police
+ let localvariable random 30
   ask thieves[
-    if ticks - birth-tick > random 100 [die]
+    if hidden? = false[
+    set hide? false
+  ]
+  ]
+  if hide? = false[ move-thief]
+  move-police
+
+  ask thieves[
+   ; if ticks - birth-tick > random 100 [die]
+    if ticks - birth-tick = localvariable [hide-turtle set hidden? true print "hi"]
+    if ticks - birth-tick > localvariable + random 10 [show-turtle set hidden? false set birth-tick ticks]
   ]
   if count thieves < random 20 [create-thieves random (ratio-thieves * population-size / 10) [spawn-thief]]
   ask bikes[
@@ -283,6 +295,7 @@ to spawn-thief
   set crime-probability random-float 1
   move-to one-of patches with [accessible?]
   set birth-tick ticks
+  set hidden? false
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -463,6 +476,17 @@ MONITOR
 344
 Bikes stolen
 count-total
+17
+1
+11
+
+MONITOR
+117
+308
+211
+353
+thieves hidden
+count thieves with[hidden? = true]
 17
 1
 11
@@ -832,7 +856,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
