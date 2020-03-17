@@ -1,5 +1,8 @@
 ;each tick is 12 hours
-;look into how many bikes are stolen in london and estimate how many bikes are generally stolen
+;stolen bicycles need to be sold back into the model or removed from the model completely (ie. sold outside of the area)
+;locking advice needs to be better
+
+
 
 ;possible interventions
 ;gps bike tracking
@@ -16,6 +19,8 @@ globals[
   count-total
   enforce?
   hide?
+  police-thief?
+  police-bike?
 ]
 
 patches-own[
@@ -37,6 +42,7 @@ bikes-own[
   security
   stolen?
   birth-tick
+  hidden?
 ]
 
 to init-map
@@ -82,6 +88,7 @@ end
 
 to go
  let localvariable random 30
+ let localvariable2 random 10
   ask thieves[
     if hidden? = false[
     set hide? false
@@ -92,13 +99,15 @@ to go
 
   ask thieves[
    ; if ticks - birth-tick > random 100 [die]
-    if ticks - birth-tick = localvariable [hide-turtle set hidden? true print "hi"]
+    if ticks - birth-tick = localvariable [hide-turtle set hidden? true]
     if ticks - birth-tick > localvariable + random 10 [show-turtle set hidden? false set birth-tick ticks]
   ]
   if count thieves < random 20 [create-thieves random (ratio-thieves * population-size / 10) [spawn-thief]]
   ask bikes[
-    if ticks - birth-tick > random 100 [die]
+    if ticks - birth-tick = localvariable2[hide-turtle set hidden? true]
+    if ticks - birth-tick > localvariable2 + random 10 [show-turtle set hidden? false set birth-tick ticks]
   ]
+
   if count bikes < random 200 [create-bikes random (ratio-bikes * population-size ) [spawn-bike]]
   tick
 end
@@ -179,16 +188,18 @@ to move-thief
   ask thieves[
     move
     steal-bike
+    sell-bike
   ]
     thief-patches
 end
 
 to move-police
-  ifelse enforce? = true[
+  ;ifelse enforce? = true[
+  ifelse (police-thief? = true) or (police-bike? = true)[
   ask policeofficer[
     move
-    police-thief
-    police-bike
+      if police-thief? = true [police-thief]
+      if police-bike? = true [police-bike]
   ]
   police-patches
   ]
@@ -198,11 +209,11 @@ end
 to steal-bike
  let randomnumber random-float 1
  let randomnumber2 random-float 1
-  ask bikes in-radius 5[
+  ask bikes in-radius 3[
     if (shape = "bike") and (color = green) and (not stolen?)[
       if (desirability > randomnumber) and (security < randomnumber2)[
         set count-total count-total + 1
-        hatch-bikes 1 [set stolen? true set color red]
+        hatch-bikes 1 [set stolen? true set color red ]
         die
       ]
     ]
@@ -210,11 +221,15 @@ to steal-bike
 
 end
 
+;thieves detered from stealing/go to another area
+
+;thieves have no luck stealing from here, go elsewhere
+
 to police-thief
   ask thieves-on patch-ahead 100[
     set crime-probability crime-probability - (crime-probability * 0.25)
-    print "words"
-    ; thief gives up and stops thieving...
+    if crime-probability < 0.2 [die]
+    print "thief dies"
   ]
 end
 
@@ -228,6 +243,18 @@ end
 
 ;secure parking is available in most places.
 to secure-park
+end
+
+;sell stolen bicycles within the area
+
+
+;bicycles are sold outside the area
+to sell-bike
+  ask bikes with [stolen? = true][
+    ;if ticks - birth-tick > localvariable2 + random 10 [show-turtle set hidden? false set birth-tick ticks]
+    if ticks - birth-tick > random 20 [die]
+    print "sold outside"
+  ]
 end
 
 to set-qvalue[current-xcor current-ycor current-heading new-xcor new-ycor]
@@ -452,23 +479,6 @@ ratio-policeofficer
 NIL
 HORIZONTAL
 
-BUTTON
-31
-407
-94
-440
-Police
-set enforce? true
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 MONITOR
 10
 299
@@ -490,6 +500,40 @@ count thieves with[hidden? = true]
 17
 1
 11
+
+BUTTON
+22
+364
+192
+397
+Police warn thieves
+set police-thief? true
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+22
+408
+194
+441
+Offer locking advice
+set police-bike? true
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -856,7 +900,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
