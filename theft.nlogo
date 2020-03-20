@@ -64,7 +64,7 @@ to setup-bikes
 end
 
 to setup-thieves
-  create-thieves ratio-thieves * population-size / 10[
+  create-thieves ratio-thieves * population-size / 5[
     spawn-thief
   ]
 end
@@ -101,15 +101,14 @@ to go
     if ticks - birth-tick = localvariable [hide-turtle set hidden? true]
     if ticks - birth-tick > localvariable + random 10 [show-turtle set hidden? false set birth-tick ticks]
   ]
-  if count thieves < random 20 [create-thieves random (ratio-thieves * population-size / 10) [spawn-thief]]
+  if count thieves < ((ratio-thieves * population-size / 10) - (ratio-thieves * population-size / 10) * 0.5) [create-thieves random (ratio-thieves * population-size / 10) [spawn-thief]]
   ask bikes[
     if ticks - birth-tick = localvariable2[hide-turtle set hidden? true]
     if ticks - birth-tick > localvariable2 + random 10 [show-turtle set hidden? false set birth-tick ticks]
   ]
-  if count bikes < random 200 [create-bikes random (ratio-bikes * population-size ) [spawn-bike]]
+  if count bikes < ((ratio-bikes * population-size) - (ratio-bikes * population-size) * 0.05) [create-bikes random (ratio-bikes * population-size ) [spawn-bike]]
   ask thieves[
     if crime-probability < 0.1 [
-      print  "thief elsewhere"
       thief-elsewhere
   ]
   ]
@@ -218,6 +217,7 @@ to steal-bike
       if (desirability > randomnumber) and (security < randomnumber2)[
         set count-total count-total + 1
         hatch-bikes 1 [set stolen? true set color red ]
+
         die
       ]
     ]
@@ -233,15 +233,13 @@ end
 to police-thief
   ask thieves-on patch-ahead 100[
     set crime-probability crime-probability - (crime-probability * 0.25)
-    if crime-probability < 0.2 [die]
-    print "thief dies"
+    if crime-probability < 0.2 [die print "you dead"]
   ]
 end
 
 to police-bike
   ask bikes-on patch-ahead 100[
     let chance random-float 1
-    print "oof"
     if chance > 0.5 [set security security + 0.05]
   ]
 end
@@ -255,9 +253,9 @@ to sell-bike
   ask bikes with [stolen? = true][
     ;if ticks - birth-tick > localvariable2 + random 10 [show-turtle set hidden? false set birth-tick ticks]
     ;bike is sold in the area
-    if ticks - birth-tick = random 30 [print "sold inside" hatch-bikes 1 die]
+    if ticks - birth-tick = random 30 [hatch-bikes 1 die]
     ;bike is sold outside of the area
-    if ticks - birth-tick > random 20 [print "sold outside" die ]
+    if ticks - birth-tick > random 20 [die ]
   ]
 end
 
@@ -311,7 +309,7 @@ to spawn-bike
   set shape "bike"
   set color green
   set size 20
-  set desirability random-float 0.8
+  set desirability random-float 1
   set security random-float 1
   set stolen? false
   set birth-tick ticks
@@ -330,10 +328,10 @@ to spawn-thief
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-217
-21
-1490
-459
+211
+22
+1484
+460
 -1
 -1
 1.0
@@ -540,12 +538,12 @@ NIL
 1
 
 MONITOR
-142
-454
-199
-499
-STOLEN
-count bikes with [color = red]
+42
+468
+99
+513
+stolen
+count bikes with [stolen? = true]
 17
 1
 11
@@ -915,7 +913,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
