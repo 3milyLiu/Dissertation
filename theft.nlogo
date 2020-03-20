@@ -1,7 +1,6 @@
-;each tick is 12 hours
-;stolen bicycles need to be sold back into the model or removed from the model completely (ie. sold outside of the area)
-;locking advice needs to be better
+;each tick is representative of 12 hours
 
+;locking advice needs to be better
 
 
 ;possible interventions
@@ -107,8 +106,13 @@ to go
     if ticks - birth-tick = localvariable2[hide-turtle set hidden? true]
     if ticks - birth-tick > localvariable2 + random 10 [show-turtle set hidden? false set birth-tick ticks]
   ]
-
   if count bikes < random 200 [create-bikes random (ratio-bikes * population-size ) [spawn-bike]]
+  ask thieves[
+    if crime-probability < 0.1 [
+      print  "thief elsewhere"
+      thief-elsewhere
+  ]
+  ]
   tick
 end
 
@@ -222,8 +226,9 @@ to steal-bike
 end
 
 ;thieves detered from stealing/go to another area
-
-;thieves have no luck stealing from here, go elsewhere
+to thief-elsewhere
+  die
+end
 
 to police-thief
   ask thieves-on patch-ahead 100[
@@ -245,15 +250,14 @@ end
 to secure-park
 end
 
-;sell stolen bicycles within the area
-
-
 ;bicycles are sold outside the area
 to sell-bike
   ask bikes with [stolen? = true][
     ;if ticks - birth-tick > localvariable2 + random 10 [show-turtle set hidden? false set birth-tick ticks]
-    if ticks - birth-tick > random 20 [die]
-    print "sold outside"
+    ;bike is sold in the area
+    if ticks - birth-tick = random 30 [print "sold inside" hatch-bikes 1 die]
+    ;bike is sold outside of the area
+    if ticks - birth-tick > random 20 [print "sold outside" die ]
   ]
 end
 
@@ -326,10 +330,10 @@ to spawn-thief
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-211
-22
-1484
-460
+217
+21
+1490
+459
 -1
 -1
 1.0
@@ -534,6 +538,17 @@ NIL
 NIL
 NIL
 1
+
+MONITOR
+142
+454
+199
+499
+STOLEN
+count bikes with [color = red]
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -900,7 +915,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
