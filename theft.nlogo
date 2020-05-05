@@ -1,29 +1,27 @@
 ;each tick is representative of 1 hour
-;bikes not returning
-;gamma and alpha changed to 0.8
-
-;possible interventions
 
 ;6264 ticks = 261 days
 ;model only models working days Mon-Fri (footfall in the City dramatically reduces on weekends)
 
+;singular and plural
+;TO NOTE: bicycles and bikes are used interchangably
 breed [bikes bike]
 breed [thieves thief]
 breed [policeofficer police]
 
+;global variables that all agents own
 globals[
-  ;count-police
-  ;count-bikes
-  ;count-thieves
   count-total
   enforce?
   hide?
   police-thief?
   police-bike?
   bikemarking?
+  removeparts?
   recovered
 ]
 
+;variables that all patches own
 patches-own[
   accessible?
   q-val-north
@@ -32,12 +30,14 @@ patches-own[
   q-val-west
 ]
 
+;variables that thief agents own
 thieves-own[
   crime-probability
   birth-tick
   hidden?
 ]
 
+;variables that bicycles own
 bikes-own[
   desirability
   security
@@ -46,17 +46,21 @@ bikes-own[
   show?
   marked?
   advised?
+  remove?
 ]
 
+;creates the map of the City of London
 to init-map
   import-pcolors "./images/london.png"
   ask patches[
+    ;set all patches in the image (grid space) as accessible
     set accessible? true
+    ;patches that are pinkish in the image are buildings and therefore are inaccessible
     if pcolor = 28.6 [set accessible? false]
   ]
 end
 
-
+;sets bicycles in the model
 to setup-bikes
   create-bikes ratio-bikes * population-size [
   spawn-bike
@@ -64,18 +68,21 @@ to setup-bikes
 ]
 end
 
+;sets thieves in the model
 to setup-thieves
   create-thieves ratio-thieves * population-size [
     spawn-thief
   ]
 end
 
+;sets police in the model
 to setup-policeofficer
   create-policeofficer ratio-policeofficer * population-size / 40[
     spawn-police
   ]
 end
 
+;setup procedure that is called once the setup button is clicked
 to setup
   __clear-all-and-reset-ticks
   init-map
@@ -85,17 +92,22 @@ to setup
   set hide? false
 end
 
+;go procedure that is called once the go button is clicked
 to go
+  ;thieves are not seen in the model at all times, if hidden is false they are seen, if hidden is true they are hidden
   ask thieves with [hidden? = false][
-    ;if hidden? = false[
     set hide? false
   ]
-
   ask bikes[
+    ;bicycles leave during 5-7ish
     let leave (8 + random 2)
+    ;bicycles arrive during 7-9ish
     let arrive (22 + random 2)
 
+    ;ensures that bicycles come and go during the working day
+    ;hides and shows the turtles
     if (ticks - birth-tick = arrive) or (ticks - birth-tick = arrive + 1)[
+      ;restarts the time when bicycles arrive
       set birth-tick ticks
       set show? true
       st
@@ -110,68 +122,60 @@ to go
   ;thieves move about if they are in the area
   if hide? = false[move-thief]
 
+  ;if the bike marking intervention has been clicked, this is run
   if bikemarking? = true [
     bike-bikemarking
-    ask bikes with [bikemarking? = true and hidden? = false][
+    ask bikes with [bikemarking? = true and show? = true][
       bikes-talk
     ]
   ]
+  ;if the advise removal of bicycle parts intervention has been clicked, this is run
+  if removeparts? = true [
+    remove-parts
+    ask bikes with [remove? = true and show? = true][
+      bikes-talk
+    ]
+  ]
+  ;calls the procedure that moves police agents
   move-police
 
   ask thieves[
-   ; if ticks - birth-tick > random 100 [die]
-;    if ticks - birth-tick = localvariable [hide-turtle set hidden? true]
-   ; if (ticks - birth-tick) mod 5 = 0  [ifelse hidden? = true [hide-turtle][show-turtle]]
-    ;if ticks - birth-tick > localvariable + random 10 [show-turtle set hidden? false set birth-tick ticks]
-     ; if(ticks - birth-tick) mod (random 3 + 1) = 0 [hide-turtle set hidden? true]
+    ;like bicycles, thieves do not spend all their time at the location
     if (ticks - birth-tick) = random 8 + 3 [hide-turtle set hidden? true]
-
-      ;if (ticks - birth-tick) mod (random 4 + 1) = 0 [show-turtle set hidden? false]
     if (ticks - birth-tick) = 15 + random 5 [show-turtle set hidden? false set birth-tick ticks]
     if random 1000 = 5 [die]
     if random 1000 = 5 [thief-enter]
+    ;low threshold, once this is reached thief-elsewhere procedure is called
     if crime-probability < 0.1 [
       thief-elsewhere
     ]
     ]
-
+  ;new thieves enter the environment
   if count thieves < ((ratio-thieves * population-size ) - (ratio-thieves * population-size * 0.4)) [create-thieves random (ratio-thieves * population-size) [spawn-thief]]
-
-    ;if ticks - birth-tick > localvariable2 + random 10 [show-turtle set hidden? false set birth-tick ticks]
-  ;]
+  ;new people decide to cycle to work
  if count bikes < ((ratio-bikes * population-size) - (ratio-bikes * population-size) * 0.15) [create-bikes (ratio-bikes * population-size * 0.1 ) [spawn-bike]]
-;  ask thieves[
-;    if crime-probability < 0.1 [
-;      print "quit"
-;      thief-elsewhere
-;  ]
-;  ]
-tick
 
+tick
+  ;model stops once 261 days has been reached
   if ticks = 6264 [stop]
 end
 
+;sets out the value of patches for thieves
+;as each patch is 1 pixel in the image, a radius of 5 is used to make it as close to real life as possible
 to thief-patches
- ; ask patches with [count turtles-here > 1] [
-    ;if count turtles-here > 1[
-    ;ask patches in-radius 10 with [accessible?][
-;  ask patches in-radius 10 with [(accessible?) and (count turtles-here > 1)][
   ask patches in-radius 5 with [(accessible?) and (count turtles-here > 1)][
-;        if (any? thieves in-radius 5 with [accessible?])[
     if (any? thieves in-radius 5 with [accessible?])[
         set q-val-north 0
         set q-val-east 0
         set q-val-south 0
         set q-val-west 0
       ]
-;        if (any? bikes in-radius 30 with [accessible?])[
-            if (any? bikes in-radius 5 with [accessible?])[
+    if (any? bikes in-radius 5 with [accessible?])[
         set q-val-north 10
         set q-val-east 10
         set q-val-south 10
         set q-val-west 10
       ]
-;        if (any? policeofficer in-radius 30 with [accessible?])[
     if (any? policeofficer in-radius 5 with [accessible?])[
         set q-val-north -10
         set q-val-east -10
@@ -179,32 +183,23 @@ to thief-patches
         set q-val-west -10
       ]
     ]
-  ;]
-  ;]
-
 end
 
+;sets out the value of patches for police
 to police-patches
- ; ask patches with [count turtles-here > 1][
-    ;if count turtles-here > 1[
-      ;ask patches in-radius 10 with [accessible?][
-;  ask patches in-radius 10 with [(accessible?) and (count turtles-here > 1)][
   ask patches in-radius 5 with [(accessible?) and (count turtles-here > 1)][
-;        if (any? thieves in-radius 3 with [accessible?])[
     if (any? thieves in-radius 5 with [accessible?])[
         set q-val-north 10
         set q-val-east 10
         set q-val-south 10
         set q-val-west 10
       ]
-;        if (any? bikes in-radius 30 with [accessible?])[
     if (any? bikes in-radius 5 with [accessible?])[
         set q-val-north 2
         set q-val-east 2
         set q-val-south 2
         set q-val-west 2
       ]
-;        if (any? policeofficer in-radius 30 with [accessible?])[
     if (any? policeofficer in-radius 5 with [accessible?])[
         set q-val-north -10
         set q-val-east -10
@@ -212,30 +207,32 @@ to police-patches
         set q-val-west -10
       ]
     ]
-;  ]
- ; ]
 end
 
+;movement of all agents
 to move
+  ;gets the current x and y co-ordinates
   let current-xcor xcor
     let current-ycor ycor
+  ;25% chance of moving north, east, south, west
     set heading ((random 4) * 90)
       let probability random-float 1
-      ifelse (probability < 0.8)[
+      ifelse (probability < 0.8)[ ;80% chance going in intended  direction (MDP)
       ][
         ifelse (probability < 0.9)[
-          set heading (heading + 90)]
-        [set heading (heading - 90)]
+          set heading (heading + 90)];go left of intended direction
+        [set heading (heading - 90)];go right of intended direction
       ]
-     ; fd 10
-  fd 10
+  fd 10 ; direction is set, go forwards 10 patches
+  ;accidently entered an area that is marked as a building, reverse
       if pcolor = 28.6[
     bk 10
-     ; bk 10
   ]
+  ;set the q-values
       set-qvalue current-xcor current-ycor heading xcor ycor
 end
 
+;movement of thief agents that are active
 to move-thief
   ask thieves with [hidden? = false][
     move
@@ -265,6 +262,7 @@ to move-police
 
 end
 
+;thief steals a bicycle
 to steal-bike
  let randomnumber random-float 1
  let randomnumber2 random-float 1
@@ -302,6 +300,7 @@ to thief-elsewhere
   die
 end
 
+;police interaction with thieves
 to police-thief
   ask thieves in-radius 5 with [hidden? = false][
     if random-float 1 > 0.5 [
@@ -313,21 +312,24 @@ to police-thief
   ]
 end
 
+;police have greater 'vision' of the environment
 to police-bike
   ask bikes in-radius 50 with [show? = true and advised? = false][
+    ;if the giving advice intervention is active,  advise them on safer locking through verbally or leaflet
     if police-bike? = true[
     let chance random-float 1
-    if chance > 0.5 [set security security + 0.1 set advised? true]
+    if chance > 0.5 [set security security + 0.2 set advised? true]
     ]
+    ;if the bike marking intervention is active and a bicycle is found, take it.
     if bikemarking? = true[
-    if any? bikes in-radius 50 with [(stolen? = true) and (marked? = true)][
-        if random-float 1 > 0.7[
+    if any? bikes in-radius 3 with [(stolen? = true) and (marked? = true)][
+        if random-float 1 > 0.8[
           let time ticks
           set recovered recovered + 1
           die
+          ;bicycle is returned to the owner
           if ticks = time + 48 [
       hatch-bikes 1 [spawn-bike set marked? true set security random-float 1 + 0.2]
-            print "returned"
         ]
         ]
   ]
@@ -341,29 +343,36 @@ to bike-bikemarking
   ask bikes with [(show? = true) and (random-float 1 < 0.02)][
     if random-float 1 < 0.02 [
     set marked? true
-    ;set marked? true
     set desirability desirability - 0.1
     set security security + 0.05
   ]
   ]
 end
 
+;bicycle parts are removed if the owner has finally decided upon
+to remove-parts
+  ask bikes with [(show? = true) and (random-float 1 < 0.02) and (remove? = not true)][
+      set remove? true
+      set desirability desirability - 0.1
+  ]
+  end
+
 ;thieves talk to other thieves
 to thieves-talk
   ask thieves in-radius 15 with [(hidden? = false) and (random-float 1 > 0.5)][
-   ; if random-float 1 > 0.5 [set crime-probability crime-probability - 0.05]
     set crime-probability crime-probability - 0.05
   ]
 end
 
 ;bike owners talk to other bike owners
 to bikes-talk
-  ask bikes in-radius 5 with [(hidden? = false) and (random-float 1 > 0.2)][
-  ;  if random-float 1 > 0.2 [set marked? true print "advised"]
-    set marked? true
+  ask bikes in-radius 5 with [(show? = true) and (random-float 1 > 0.2)][
+    if bikemarking? = true [set marked? true]
+    if removeparts? = true [remove-parts]
   ]
 end
 
+;open source code that has been adapted from Larry Lin
 to set-qvalue[current-xcor current-ycor current-heading new-xcor new-ycor]
   ; Q(s',a') optimal future value
   let optimal-f-val 0
@@ -376,11 +385,8 @@ to set-qvalue[current-xcor current-ycor current-heading new-xcor new-ycor]
 
   ;computed q-values
   ask patch current-xcor current-ycor[
-    ;reward + 10, gamma 0.1 alpha 0.2
-    ; thieves are a bit dumb so gamma is 0.1
-    ; alpha 0.2 slow learning
-    let alpha 0.8
-    let gamma 0.8
+    let alpha 0.8 ;learning rate
+    let gamma 0.8 ;discount factor
     let reward 10
   if(current-heading = 0)[
     ;; north
@@ -402,7 +408,7 @@ to set-qvalue[current-xcor current-ycor current-heading new-xcor new-ycor]
 ]
 end
 
-;agent creation in gui
+;sets all characteristics and variables of police
 to spawn-police
   set shape "person"
   set color blue
@@ -410,6 +416,7 @@ to spawn-police
   move-to one-of patches with [accessible?]
 end
 
+;sets all characteristics and variables of bicycles
 to spawn-bike
   set shape "bike"
   set color green
@@ -424,6 +431,7 @@ to spawn-bike
   move-to one-of patches with [accessible?]
 end
 
+;sets all characteristics and variables of thieves
 to spawn-thief
   setxy random-xcor random-ycor
   set shape "person"
@@ -518,7 +526,7 @@ ratio-bikes
 ratio-bikes
 0
 0.3
-0.24
+0.25
 0.005
 1
 NIL
@@ -542,34 +550,12 @@ NIL
 1
 
 MONITOR
-12
-537
-69
-582
-Thieves
-count thieves
-17
-1
-11
-
-MONITOR
 154
 240
 211
 285
-police
+Police
 count policeofficer
-17
-1
-11
-
-MONITOR
-137
-537
-203
-582
-Total bikes
-count bikes
 17
 1
 11
@@ -640,8 +626,8 @@ PLOT
 1077
 806
 Bicycle thefts over time
-time
-stolen bikes
+time (in ticks)
+stolen bicycles
 0.0
 2545.0
 0.0
@@ -685,7 +671,7 @@ MONITOR
 239
 141
 284
-bicycles
+Bicycles
 count bikes with [show? = true]
 17
 1
@@ -696,19 +682,8 @@ MONITOR
 239
 72
 284
-thieves
+Thieves
 count thieves with [hidden? = false]
-17
-1
-11
-
-MONITOR
-215
-488
-311
-533
-hidden bicycles
-count bikes with [show? = false]
 17
 1
 11
@@ -723,42 +698,54 @@ INTERVENTIONS
 0.0
 1
 
+BUTTON
+15
+529
+214
+570
+Advise removal of expensive parts
+set removeparts? true
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This model is a 2D agent-based model of bicycle theft within a small area in the City of London specifically focussing upon interventions that may be implemented to deter bicycle thefts. 
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+Agents are broken down into 3 types: bicycles, thieves and police. It is the sole aim for thieves to steal bicycles within the environment, bicycles are naturally in the environment and police are there to try and limit thefts. 
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Click on the SETUP button to set up the environment. Set the NUMBER slider to change the number of agents within the environment. Click on GO to start the agents moving. Interventions can be activated by clicking on the button of the intervention, remember to setup the model again with the new intervention. 
 
-## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Change the number of agents within the environment and experiment with the interventions provided. To note, multiple interventions are allowed in the model.
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+The inclusion of environmental features for example street lighting, CCTV and bus stops.
+Greater interventions.
 
-## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
 
 ## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Emily Liu
+
+Q-learning: Larry Lin, Modelling Commons.
 @#$#@#$#@
 default
 true
