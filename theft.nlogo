@@ -51,7 +51,7 @@ bikes-own[
 
 ;creates the map of the City of London
 to init-map
-  import-pcolors "./images/london.png"
+  import-pcolors "./london.png"
   ask patches[
     ;set all patches in the image (grid space) as accessible
     set accessible? true
