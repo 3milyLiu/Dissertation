@@ -1,7 +1,6 @@
-# 6CCS3PRJ Final Year Project BSc Computer Science
-
-# Title: Agent-based simulation of bicycle theft in London
-# Supervisor: Dr Simon Miles
+# 6CCS3PRJ Final Year Project 
+## Title: Agent-based simulation of bicycle theft in London
+###### Supervisor: Dr Simon Miles
 
 # Abstract
 This project aims to create an agent-based model of bicycle theft within London. More specifically, it focusses on deterring bicycle theft within the metropolitan area, by modelling bicycle
