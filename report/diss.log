@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7250 64-bit) (preloaded format=pdflatex 2020.2.13)  6 MAY 2020 00:19
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7250 64-bit) (preloaded format=pdflatex 2020.2.13)  12 OCT 2020 10:16
 entering extended mode
 **./diss.tex
 (diss.tex
@@ -1581,8 +1581,8 @@ Package logreq Info: Writing requests to 'diss.run.xml'.
  ) 
 Here is how much of TeX's memory you used:
  13413 strings out of 492450
- 236420 string characters out of 3120005
- 679815 words of memory out of 3000000
+ 236580 string characters out of 3120005
+ 679825 words of memory out of 3000000
  17580 multiletter control sequences out of 15000+200000
  53340 words of font info for 38 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1610,7 +1610,7 @@ emily/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmsy7.pfb><C:/Use
 rs/emily/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:
 /Users/emily/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmu10.pfb>
 
-Output written on diss.pdf (75 pages, 4196259 bytes).
+Output written on diss.pdf (75 pages, 4196304 bytes).
 PDF statistics:
  362 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
