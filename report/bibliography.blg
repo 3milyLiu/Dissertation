@@ -1,5 +1,0 @@
-[0] Config.pm:304> INFO - This is Biber 2.13
-[0] Config.pm:307> INFO - Logfile is 'bibliography.blg'
-[48] biber-MSWIN64:315> INFO - === 
-[573] Utils.pm:316> ERROR - Cannot find 'bibliography.bcf'!
-[573] Biber.pm:114> INFO - ERRORS: 1
